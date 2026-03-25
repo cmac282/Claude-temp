@@ -1,0 +1,16 @@
+{
+  "name": "mycelium-search",
+  "version": "1.0.0",
+  "description": "Knowledge map for Fable Food: tells Claude where to find information across all connected tools and systems.",
+  "author": "jidavis-qld",
+  "repository": "https://github.com/jidavis-qld/Claude-plugin-testing",
+  "license": "MIT",
+  "keywords": [
+    "fablefood",
+    "context",
+    "knowledge-map"
+  ],
+  "skills": [
+    "Mycelium-search.md"
+  ]
+}
