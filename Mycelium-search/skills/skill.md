@@ -17,6 +17,7 @@ This document tells Claude exactly where to look when answering questions for th
 | **Confluence** | `search_pages`, `get_page`, `list_spaces`, `get_space_pages`, `get_page_children`, `get_page_comments`, `get_page_attachments`, `get_attachment_content` |
 | **Slack** | `search_messages`, `search_files`, `list_channels`, `read_channel`, `read_thread`, `get_user`, `search_users` |
 | **Gmail** | `search_emails`, `list_emails`, `get_email` |
+| **Google Drive** | `search_files`, `list_files`, `get_file_metadata`, `read_file`, `list_shared_drives` |
 | **Fireflies** | `fireflies_get_transcripts`, `fireflies_search`, `fireflies_get_summary`, `fireflies_get_transcript` |
 
 **BigQuery workflow:** When unsure which table to query, call `list_datasets` → `list_tables` on the relevant dataset → `get_table_schema` on the specific table before writing SQL. Primary analytical dataset is `mycelium_ai`.
@@ -291,7 +292,49 @@ Use `search_messages` with keywords. Use `read_thread` for full reply context. C
 
 ---
 
-## 7. External Email → **Gmail**
+## 7. Working Files & Reference Documents → **Google Drive**
+
+Google Drive holds live working files, trackers, templates and reference documents across 6 shared drives. All files returned by the connector are broadly accessible (shared drive members, domain-wide, or anyone-with-link) — restricted personal files are automatically filtered out.
+
+### How to search and cite
+1. **Search by keyword**: `search_files` with a name or content query
+2. **Browse a drive**: `list_shared_drives` to get drive IDs → `list_files` with the drive's folder ID
+3. **Read content**: `read_file` exports Google Docs as plain text, Sheets as CSV, Slides as plain text (10 MB limit)
+4. **Cite with link**: use the `webViewLink` returned in every result
+
+### Shared drives and what lives there
+
+| Drive | ID | What lives here | Good for |
+|---|---|---|---|
+| **Finance** | `0AKjO6l0ehgnbUk9PVA` | Bank account details, company registration docs, financial statements (FY2021+), fundraising materials, investor presentations, finance process framework | Company formation docs, historical financials, investor decks |
+| **Marketing** | `0ALt1H7tCPWBBUk9PVA` | Brand assets, creative briefs, social media, PR & comms, events, email marketing, photos & videos, marketing collateral, campaign budget trackers, recipe costings, retail and distributor marketing | Brand guidelines, campaign assets, marketing budget vs actuals |
+| **Operations** | `0AAVj9I_JLsbgUk9PVA` | Packaging specs and artwork, product spec sheets, customer setup files, document version control, S&OP materials, logistics templates, project management templates | Current packaging artwork, document register, ops process docs |
+| **R&D** | `0AHF8-od2ySf_Uk9PVA` | Research studies by product type (myco-texturisation, blended meat, burger patty, shiitake extract, stem maximisation), ingredient analysis, mushroom variety analysis | Specific R&D project files and study results |
+| **Sales** | `0ADuDVnKjPGVnUk9PVA` | Sales targets & budget trackers, pipeline reports, customer pitch decks (by account), costing calculators, attribution models, sales forecast working sheets, regional customer folders (AU/UK/US/Asia), blended product pipeline | Annual targets, customer-specific decks, live costing models, sales forecasting |
+| **Team Fable** | `0AOPGPgB1p7bxUk9PVA` | Company letterheads (AU/UK/US), slide templates, all-hands presentations, onboarding materials, offsite decks (Malaysia 2023/2024/2025), headshots, birthday videos, pulse survey results, CVs | Templates, letterheads, company-wide presentations |
+
+### What Drive is best for (vs Confluence)
+- **Drive** → live working files, active trackers, models being iterated on, large media assets, presentations
+- **Confluence** → finalised policies, SOPs, reference documentation, structured knowledge base articles
+
+### Example search queries
+```
+# Find sales target or attribution trackers
+search_files(query="name contains 'target' and mimeType = 'application/vnd.google-apps.spreadsheet'")
+
+# Find customer pitch decks in the Sales drive
+search_files(query="name contains 'Fable' and mimeType = 'application/vnd.google-apps.presentation'", shared_drive_id="0ADuDVnKjPGVnUk9PVA")
+
+# Find budget or forecast working files
+search_files(query="name contains 'budget' or name contains 'forecast'", include_shared_drives=true)
+
+# Browse the Finance drive root
+list_files(folder_id="0AKjO6l0ehgnbUk9PVA")
+```
+
+---
+
+## 8. External Email → **Gmail**
 
 - `search_emails`: filter by `from:`, `to:`, `subject:`, date range
 - `get_email`: read a full email thread
@@ -320,6 +363,13 @@ Best for: customer order confirmations, supplier negotiations, inbound enquiries
 | Sales pipeline / deals | HubSpot tools or `hubspot_datasources.c_deals` |
 | CRM contacts or companies | HubSpot tools or `hubspot_datasources.c_contacts` / `c_companies` |
 | CRM call / email / meeting logs | `hubspot_datasources.t_calls` / `t_emails` / `t_meetings` |
+| Annual sales targets / budgets | Google Drive → Sales drive (`search_files` for "target" or "budget") |
+| Sales attribution / forecast working files | Google Drive → Sales drive (`search_files` for "forecast" or "attribution") |
+| Customer pitch decks | Google Drive → Sales drive → customer folder or `search_files` by account name |
+| Marketing budget vs actuals | Google Drive → Marketing drive (`search_files` for "budget") |
+| Packaging artwork / specs | Google Drive → Operations drive → Packaging folder |
+| Company letterheads / templates | Google Drive → Team Fable drive |
+| Live working files / active trackers | Google Drive → relevant shared drive |
 | Process / policy for X | Confluence → find relevant space above |
 | Customer account info | Confluence → Customers (`CUS`) + check attachments |
 | Product specs / SKUs | Confluence → Product Info (`PI`) or FQS (FB001–FB099) + attachments |
@@ -343,6 +393,7 @@ Best for: customer order confirmations, supplier negotiations, inbound enquiries
 - **Slack**: channel name, sender, approximate date
 - **Fireflies**: meeting title, date, transcript ID
 - **Gmail**: sender, recipient, subject, date
+- **Google Drive**: file name + `webViewLink` (e.g. `https://docs.google.com/spreadsheets/d/{ID}/edit`)
 
 ---
 
