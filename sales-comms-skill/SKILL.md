@@ -29,7 +29,7 @@ Before drafting anything, Claude should:
 3. **Pull the relevant email thread** via Gmail if the user is replying to something:
    - Use `search_emails` with the customer name or subject to find the thread
    - Use `get_email` to read the full thread for context
-   - **Capture the `threadId`** from the message — you'll pass it to `create_draft` in Step 4
+   - **Capture the thread ID**: Gmail's `thread_id` is the **message ID of the first/oldest email in the thread** — not the most recent one. From `search_emails` results, identify the earliest message in the thread and use its `ID` as the `thread_id` in Step 4. Using the wrong message ID will cause the draft to fail.
    - Pay attention to the tone the customer is using
 
 4. **Pull any relevant account context** if needed:
@@ -114,8 +114,10 @@ Once the user is happy (or immediately if they say "looks good" / "save it" / "c
    - `subject`: the email subject (prefix with `Re: ` if replying)
    - `body`: the final agreed draft text
    - `cc`: any CC addresses if applicable
-   - `thread_id`: the `threadId` captured in Step 1 (so the draft lands in the right thread)
-2. Return the `draft_url` so the rep can open it directly in Gmail: "Draft saved — [open in Gmail]({draft_url})"
+   - `thread_id`: the first/oldest message ID captured in Step 1 (so the draft lands in the right thread)
+2. Always return the `draft_url` as a clickable link so the rep can open it directly in Gmail on web:
+   `Draft saved — [open in Gmail]({draft_url})`
+   The team works primarily from Gmail web, so this link is essential — never skip it.
 
 Do NOT send the email. The rep reviews and sends from Gmail themselves.
 
@@ -142,8 +144,8 @@ Once established, save to `memory/people/{name}.md` following the format in `mem
 | Need | Where to look |
 |------|--------------|
 | Customer background | Confluence `CUS` space → customer page |
-| Recent email thread | Gmail → `search_emails` then `get_email` (capture `threadId`) |
-| Save draft to Gmail | Gmail → `create_draft` with `thread_id` |
+| Recent email thread | Gmail → `search_emails` then `get_email` (use **oldest message ID** as `thread_id`) |
+| Save draft to Gmail | Gmail → `create_draft` with `thread_id`; always return `draft_url` link for Gmail web |
 | Deal stage / contact info | HubSpot → `search_crm_objects` |
 | Recent internal discussion | Slack → `#us-sales`, `#uk-sales`, `#au-sales`, `#sales-pipeline-updates` |
 | Meeting notes | Fireflies → `fireflies_search` by customer name |
