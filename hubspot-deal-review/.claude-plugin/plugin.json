@@ -1,0 +1,18 @@
+{
+  "name": "hubspot-deal-review",
+  "version": "1.0.0",
+  "description": "Weekly HubSpot deal health review for the Fablefood sales team. Finds deals with data quality issues and walks through fixing each one interactively with popup panels.",
+  "author": "cmac282",
+  "repository": "https://github.com/cmac282/Claude-temp",
+  "license": "MIT",
+  "keywords": [
+    "fablefood",
+    "hubspot",
+    "sales",
+    "crm",
+    "deals"
+  ],
+  "skills": [
+    "SKILL.md"
+  ]
+}
